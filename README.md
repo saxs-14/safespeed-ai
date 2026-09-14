@@ -153,14 +153,21 @@ to move to Postgres — SQLAlchemy handles both without code changes.
 
 ## Security considerations
 
-- Upload content-type and size are validated server-side
-- CORS restricted to configured origins
-- No secrets in source; `.env` is gitignored, `.env.example` documents required vars
-- Uploaded files are stored with randomized filenames
-
-This MVP does not yet implement user authentication — the dashboard is unauthenticated
-by design for demo purposes. **A production deployment must add authentication and
-authorization before exposing this to the internet.**
+- **API key required on every endpoint except `/api/health`.** Set `API_KEY` in the
+  backend `.env` and `VITE_API_KEY` in the frontend `.env` to the same value before
+  deploying anywhere reachable outside your own machine — the shipped default
+  (`dev-local-key-change-me`) is for local development only. This is a single-tenant
+  "licensed instance" model (one key per deployment), not per-user accounts; see "Future
+  improvements" for the multi-user upgrade path.
+- Rate limiting (10 requests/60s/IP) on the compute-heavy `/api/analyze*` endpoints, to
+  bound abuse and hosting cost.
+- Upload content-type and size are validated server-side.
+- CORS restricted to configured origins.
+- No secrets in source; `.env` is gitignored, `.env.example` documents required vars.
+- Uploaded files are stored with randomized filenames.
+- Served evidence images under `/uploads` are not API-key gated (static file serving) —
+  treat that path as low-sensitivity or put it behind your reverse proxy's own auth if
+  evidence images are sensitive in your deployment.
 
 ## Privacy considerations
 

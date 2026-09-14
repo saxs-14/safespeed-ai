@@ -1,4 +1,5 @@
 const API_BASE = "";
+const API_KEY = (import.meta.env.VITE_API_KEY as string) || "dev-local-key-change-me";
 
 export interface SpeedEvent {
   id: number;
@@ -36,6 +37,10 @@ export interface DashboardSummary {
   speed_limit_kmh: number;
 }
 
+function authHeaders(): HeadersInit {
+  return { "X-API-Key": API_KEY };
+}
+
 async function json<T>(res: Response): Promise<T> {
   if (!res.ok) {
     const body = await res.text();
@@ -44,24 +49,42 @@ async function json<T>(res: Response): Promise<T> {
   return res.json();
 }
 
+async function downloadFile(url: string, filename: string) {
+  const res = await fetch(url, { headers: authHeaders() });
+  if (!res.ok) throw new Error(await res.text().catch(() => res.statusText));
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = objectUrl;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(objectUrl);
+}
+
 export const api = {
   health: () => fetch(`${API_BASE}/api/health`).then((r) => json<{ status: string }>(r)),
 
-  summary: () => fetch(`${API_BASE}/api/dashboard/summary`).then((r) => json<DashboardSummary>(r)),
+  summary: () =>
+    fetch(`${API_BASE}/api/dashboard/summary`, { headers: authHeaders() }).then((r) => json<DashboardSummary>(r)),
 
   events: (sessionId?: string) =>
-    fetch(`${API_BASE}/api/events${sessionId ? `?session_id=${sessionId}` : ""}`).then((r) =>
-      json<SpeedEvent[]>(r)
+    fetch(`${API_BASE}/api/events${sessionId ? `?session_id=${sessionId}` : ""}`, { headers: authHeaders() }).then(
+      (r) => json<SpeedEvent[]>(r)
     ),
 
-  exportCsvUrl: (sessionId?: string) =>
-    `${API_BASE}/api/events/export${sessionId ? `?session_id=${sessionId}` : ""}`,
+  exportEvents: (sessionId?: string) =>
+    downloadFile(
+      `${API_BASE}/api/events/export${sessionId ? `?session_id=${sessionId}` : ""}`,
+      "safespeed_events.csv"
+    ),
 
   runDemo: (speedLimit: number, pxPerMeter: number) => {
     const form = new FormData();
     form.set("speed_limit_kmh", String(speedLimit));
     form.set("pixels_per_meter", String(pxPerMeter));
-    return fetch(`${API_BASE}/api/analyze/demo`, { method: "POST", body: form }).then((r) =>
+    return fetch(`${API_BASE}/api/analyze/demo`, { method: "POST", headers: authHeaders(), body: form }).then((r) =>
       json<AnalysisSession>(r)
     );
   },
@@ -72,7 +95,7 @@ export const api = {
     form.set("speed_limit_kmh", String(speedLimit));
     form.set("pixels_per_meter", String(pxPerMeter));
     form.set("calibrated", String(calibrated));
-    return fetch(`${API_BASE}/api/analyze`, { method: "POST", body: form }).then((r) =>
+    return fetch(`${API_BASE}/api/analyze`, { method: "POST", headers: authHeaders(), body: form }).then((r) =>
       json<AnalysisSession>(r)
     );
   },

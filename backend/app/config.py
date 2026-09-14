@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     max_upload_mb: int = 100
     allowed_video_types: str = "video/mp4,video/avi,video/x-msvideo,video/quicktime"
     allowed_image_types: str = "image/jpeg,image/png"
+    api_key: str = "dev-local-key-change-me"
 
     class Config:
         env_file = ".env"
