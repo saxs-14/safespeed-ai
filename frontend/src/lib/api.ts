@@ -1,5 +1,5 @@
-const API_BASE = "";
-const API_KEY = (import.meta.env.VITE_API_KEY as string) || "dev-local-key-change-me";
+const API_BASE = (import.meta.env.VITE_API_BASE as string) || "https://safespeed-ai-607032555709.us-central1.run.app";
+const API_KEY = (import.meta.env.VITE_API_KEY as string) || "e62a39fbe74c38d0c49195e0bd02a2e414c700aacb6aaec5";
 
 export interface SpeedEvent {
   id: number;
