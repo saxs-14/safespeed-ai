@@ -1,3 +1,5 @@
+<p align="center"><img src=".github/assets/banner.svg" width="100%" alt="SafeSpeed AI banner"/></p>
+
 # SafeSpeed AI
 
 AI-powered road safety MVP: upload traffic footage and it detects vehicles, tracks them
